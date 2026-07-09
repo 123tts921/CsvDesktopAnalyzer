@@ -2,11 +2,11 @@
 
 Windows 桌面版 CSV 数据分析工具。
 
-当前主程序位于 `CsvDesktopAnalyzer/`，使用 .NET WinForms + ScottPlot 开发，适合对大体量 CSV 做时间序列对比分析。
+当前主程序位于 `CsvDesktopAnalyzer/`，使用 `.NET WinForms + ScottPlot` 开发，适合对大体量 CSV 做时间序列对比分析。
 
 ## 功能
 
-- 选择 1 列、2 列或多列在同一张图上比较
+- 选择 1 列、2 列或多列放在同一张图上比较
 - 时间范围筛选
 - 图表类型切换
   - 折线图
@@ -15,16 +15,19 @@ Windows 桌面版 CSV 数据分析工具。
 - 两种取点方式
   - 最大点数抽样
   - 固定时间间隔
-- 双 Y 轴
-- 搜索变量列
-- 刷新图表 / 重置视图 / 导出图片
+- 支持双 Y 轴
+- 左侧变量搜索
+- 刷新图表 / 重置视图 / 导出 PNG 图片
 
 ## 项目结构
 
 - `CsvDesktopAnalyzer/`: 当前桌面版源码
+- `installer/`: 安装脚本
+- `build_installer.ps1`: 生成安装包
+- `installer/InstallerProgram.cs`: 安装器源码
 - `csv_chart_viewer.py`: 早期 Python 原型
 - `csv_chart_viewer.html`: 早期 HTML 原型
-- `desktop_csv_analyzer.py`: 早期桌面试验稿
+- `desktop_csv_analyzer.py`: 早期桌面试验程序
 
 当前应以 `CsvDesktopAnalyzer/` 为准。
 
@@ -50,7 +53,19 @@ dotnet publish .\CsvDesktopAnalyzer\CsvDesktopAnalyzer.csproj `
   --configfile .\NuGet.Config
 ```
 
+## 安装包发布
+
+```powershell
+.\build_installer.ps1
+```
+
+生成结果：
+
+- `publish/CsvDesktopAnalyzerSingleFileSelfContained/CsvDesktopAnalyzer.exe`
+- `publish/CsvDesktopAnalyzerSetup.exe`
+
 ## 说明
 
 - 建议运行环境：Windows 10/11 x64
-- 发布后的单文件版本体积较大，属于正常现象，因为运行时被一并打包进去了
+- 单文件版体积较大属于正常现象，因为 .NET 运行时已一起打包
+- 安装包会将程序安装到 `C:\Program Files\CsvDesktopAnalyzer`
