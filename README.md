@@ -1,51 +1,56 @@
-# CSV 数据筛选导出工具
+# CsvDesktopAnalyzer
 
-这是一个 Windows 桌面 exe 工具，用于读取类似 `2025-2-1至2026-3-1 数据合集 - 副本_列重排_completed.csv` 的大 CSV 文件，并按列、时间段和条件筛选后导出新的 CSV。
+Windows 桌面版 CSV 数据分析工具。
 
-## 直接下载使用
-
-普通用户直接下载仓库根目录的 `CSVFilterTool.exe`，双击运行即可，不需要安装 Python。
-
-也可以从 `dist/CSVFilterTool.exe` 下载同一个程序文件。
+当前主程序位于 `CsvDesktopAnalyzer/`，使用 .NET WinForms + ScottPlot 开发，适合对大体量 CSV 做时间序列对比分析。
 
 ## 功能
 
-- 选择任意 `.csv` 文件并自动读取中文表头。
-- 自动识别编码，优先支持 UTF-8、UTF-8 BOM、GB18030。
-- 默认使用 `时间` 列作为时间筛选列，也可以手动切换。
-- 支持开始时间、结束时间筛选。
-- 支持输出列勾选、搜索、全选、清空、反选。
-- 支持额外条件筛选：包含、不包含、等于、不等于、为空、非空、`>`、`>=`、`<`、`<=`。
-- 支持预览筛选结果前 500 行。
-- 支持导出 UTF-8 BOM CSV，方便 Excel 正确打开中文。
-- 流式读取和导出，不会把整个大文件一次性塞进界面。
+- 选择 1 列、2 列或多列在同一张图上比较
+- 时间范围筛选
+- 图表类型切换
+  - 折线图
+  - 点线图
+  - 散点图
+- 两种取点方式
+  - 最大点数抽样
+  - 固定时间间隔
+- 双 Y 轴
+- 搜索变量列
+- 刷新图表 / 重置视图 / 导出图片
 
-## 运行源码
+## 项目结构
+
+- `CsvDesktopAnalyzer/`: 当前桌面版源码
+- `csv_chart_viewer.py`: 早期 Python 原型
+- `csv_chart_viewer.html`: 早期 HTML 原型
+- `desktop_csv_analyzer.py`: 早期桌面试验稿
+
+当前应以 `CsvDesktopAnalyzer/` 为准。
+
+## 本地运行
 
 ```powershell
-python .\csv_filter_app.py
+dotnet build .\CsvDesktopAnalyzer\CsvDesktopAnalyzer.csproj --configfile .\NuGet.Config
+dotnet run --project .\CsvDesktopAnalyzer\CsvDesktopAnalyzer.csproj --configfile .\NuGet.Config
 ```
 
-## 打包 exe
-
-当前环境已安装 PyInstaller，可直接运行：
+## 单文件发布
 
 ```powershell
-.\build_exe.ps1
+dotnet publish .\CsvDesktopAnalyzer\CsvDesktopAnalyzer.csproj `
+  -c Release `
+  -r win-x64 `
+  --self-contained true `
+  -p:PublishSingleFile=true `
+  -p:PublishTrimmed=false `
+  -p:EnableCompressionInSingleFile=true `
+  -p:IncludeNativeLibrariesForSelfExtract=true `
+  -o .\publish\CsvDesktopAnalyzerSingleFileSelfContained `
+  --configfile .\NuGet.Config
 ```
 
-生成文件：
+## 说明
 
-```text
-dist\CSVFilterTool.exe
-```
-
-## 时间格式
-
-支持常见格式：
-
-- `2025/2/1 0:00`
-- `2025/02/01 00:00`
-- `2025-02-01 00:00`
-- `2025/2/1`
-- `2025-02-01`
+- 建议运行环境：Windows 10/11 x64
+- 发布后的单文件版本体积较大，属于正常现象，因为运行时被一并打包进去了

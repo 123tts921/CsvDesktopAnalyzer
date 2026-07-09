@@ -5,3 +5,15 @@ build/
 *.log
 .DS_Store
 Thumbs.db
+.dotnet/
+.nuget/
+.templateengine/
+build_temp/
+dist/
+publish/
+CsvDesktopAnalyzer/bin/
+CsvDesktopAnalyzer/obj/
+CsvDesktopAnalyzer/*.user
+*.zip
+*.exe
+*.pdb
