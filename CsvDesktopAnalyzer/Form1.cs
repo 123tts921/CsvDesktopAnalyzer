@@ -59,7 +59,7 @@ public partial class Form1 : Form
         headerHintLabel.Text = "选择文件后即可筛选时间和列";
         fileLabel.Text = "当前文件";
         timeColumnLabel.Text = "时间列";
-        chartTypeLabel.Text = "图表类型";
+        chartTypeLabel.Text = "默认图表类型";
         sampleLimitLabel.Text = "每条曲线最多点数";
         displayModeLabel.Text = "显示模式";
         intervalLabel.Text = "固定时间间隔";
@@ -102,6 +102,8 @@ public partial class Form1 : Form
 
         if (columnGrid.Columns["AxisColumn"] is DataGridViewComboBoxColumn axisColumn)
             axisColumn.Items.AddRange("Y1", "Y2");
+        if (columnGrid.Columns["SeriesTypeColumn"] is DataGridViewComboBoxColumn seriesTypeColumn)
+            seriesTypeColumn.Items.AddRange("折线图", "点线图", "散点图");
 
         columnGrid.AutoGenerateColumns = false;
         columnGrid.AllowUserToAddRows = false;
@@ -215,7 +217,7 @@ public partial class Form1 : Form
 
     private void ConfigurePlot()
     {
-        _formsPlot.Plot.Clear();
+        _formsPlot.Reset(new Plot());
         _formsPlot.Plot.Axes.DateTimeTicksBottom();
         _formsPlot.Plot.Font.Set("Microsoft YaHei UI");
         _formsPlot.Plot.FigureBackground.Color = ScottPlot.Color.FromHex("#F5F7FA");
@@ -414,9 +416,10 @@ public partial class Form1 : Form
         if (_cachedData is null)
             return;
 
-        List<(string Name, string Axis)> currentSelections = GetSelections();
+        List<(string Name, string Axis, string ChartType)> currentSelections = GetSelections();
         HashSet<string> selectedNames = currentSelections.Select(x => x.Name).ToHashSet();
         Dictionary<string, string> selectedAxes = currentSelections.ToDictionary(x => x.Name, x => x.Axis);
+        Dictionary<string, string> selectedChartTypes = currentSelections.ToDictionary(x => x.Name, x => x.ChartType);
 
         _refreshing = true;
         columnGrid.Rows.Clear();
@@ -429,7 +432,8 @@ public partial class Form1 : Form
 
             bool isSelected = selectedNames.Contains(name);
             string axis = selectedAxes.TryGetValue(name, out string? savedAxis) ? savedAxis : "Y1";
-            int row = columnGrid.Rows.Add(isSelected, name, axis);
+            string chartType = selectedChartTypes.TryGetValue(name, out string? savedChartType) ? savedChartType : chartTypeComboBox.Text;
+            int row = columnGrid.Rows.Add(isSelected, name, axis, chartType);
             columnGrid.Rows[row].Cells["NameColumn"].ReadOnly = true;
         }
 
@@ -548,7 +552,7 @@ public partial class Form1 : Form
         if (_cachedData is null || string.IsNullOrWhiteSpace(_loadedFilePath) || string.IsNullOrWhiteSpace(_timeColumn))
             return;
 
-        List<(string Name, string Axis)> selections = GetSelections();
+        List<(string Name, string Axis, string ChartType)> selections = GetSelections();
         if (selections.Count == 0)
         {
             MessageBox.Show(this, "请至少选择一个指标列。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -622,9 +626,9 @@ public partial class Form1 : Form
         }
     }
 
-    private List<(string Name, string Axis)> GetSelections()
+    private List<(string Name, string Axis, string ChartType)> GetSelections()
     {
-        List<(string Name, string Axis)> items = new();
+        List<(string Name, string Axis, string ChartType)> items = new();
         foreach (DataGridViewRow row in columnGrid.Rows)
         {
             bool selected = row.Cells["SelectColumn"].Value as bool? == true;
@@ -633,8 +637,9 @@ public partial class Form1 : Form
 
             string? name = row.Cells["NameColumn"].Value?.ToString();
             string axis = row.Cells["AxisColumn"].Value?.ToString() ?? "Y1";
+            string chartType = row.Cells["SeriesTypeColumn"].Value?.ToString() ?? chartTypeComboBox.Text;
             if (!string.IsNullOrWhiteSpace(name))
-                items.Add((name, axis));
+                items.Add((name, axis, chartType));
         }
 
         return items;
@@ -769,9 +774,9 @@ public partial class Form1 : Form
         };
     }
 
-    private void DrawPlot(Dictionary<string, (double[] Xs, double[] Ys)> data, List<(string Name, string Axis)> selections)
+    private void DrawPlot(Dictionary<string, (double[] Xs, double[] Ys)> data, List<(string Name, string Axis, string ChartType)> selections)
     {
-        _formsPlot.Plot.Clear();
+        ConfigurePlot();
         _formsPlot.Plot.Axes.DateTimeTicksBottom();
         _formsPlot.Plot.Font.Set("Microsoft YaHei UI");
 
@@ -779,7 +784,6 @@ public partial class Form1 : Form
         rightAxis.Label.Text = "Y2";
         rightAxis.IsVisible = selections.Any(x => x.Axis == "Y2");
 
-        string chartMode = chartTypeComboBox.Text;
         for (int i = 0; i < selections.Count; i++)
         {
             var selection = selections[i];
@@ -790,8 +794,7 @@ public partial class Form1 : Form
             var scatter = _formsPlot.Plot.Add.Scatter(seriesData.Xs, seriesData.Ys);
             scatter.LegendText = selection.Name;
             scatter.Color = ScottPlot.Color.FromHex(CurveColor(i));
-            scatter.LineWidth = chartMode == "散点图" ? 0 : 2;
-            scatter.MarkerSize = chartMode == "折线图" ? 0 : 5;
+            ApplySeriesChartType(scatter, selection.ChartType);
 
             if (selection.Axis == "Y2")
                 scatter.Axes.YAxis = rightAxis;
@@ -828,8 +831,27 @@ public partial class Form1 : Form
         return colors[index % colors.Length];
     }
 
+    private static void ApplySeriesChartType(ScottPlot.Plottables.Scatter scatter, string chartType)
+    {
+        switch (chartType)
+        {
+            case "散点图":
+                scatter.LineWidth = 0;
+                scatter.MarkerSize = 5;
+                break;
+            case "点线图":
+                scatter.LineWidth = 2;
+                scatter.MarkerSize = 5;
+                break;
+            default:
+                scatter.LineWidth = 2;
+                scatter.MarkerSize = 0;
+                break;
+        }
+    }
+
     private sealed record SeriesRequest(
-        List<(string Name, string Axis)> Selections,
+        List<(string Name, string Axis, string ChartType)> Selections,
         DateTime Start,
         DateTime End,
         string DisplayMode,

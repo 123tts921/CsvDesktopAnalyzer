@@ -57,6 +57,7 @@ partial class Form1
         SelectColumn = new DataGridViewCheckBoxColumn();
         NameColumn = new DataGridViewTextBoxColumn();
         AxisColumn = new DataGridViewComboBoxColumn();
+        SeriesTypeColumn = new DataGridViewComboBoxColumn();
         rightPanel = new Panel();
         plotTitleLabel = new Label();
         plotHintLabel = new Label();
@@ -505,7 +506,7 @@ partial class Form1
         // columnGrid
         // 
         columnGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-        columnGrid.Columns.AddRange(new DataGridViewColumn[] { SelectColumn, NameColumn, AxisColumn });
+        columnGrid.Columns.AddRange(new DataGridViewColumn[] { SelectColumn, NameColumn, AxisColumn, SeriesTypeColumn });
         columnGrid.Dock = DockStyle.Fill;
         columnGrid.Location = new Point(3, 528);
         columnGrid.Name = "columnGrid";
@@ -523,13 +524,19 @@ partial class Form1
         NameColumn.HeaderText = "指标列";
         NameColumn.Name = "NameColumn";
         NameColumn.ReadOnly = true;
-        NameColumn.Width = 240;
+        NameColumn.Width = 180;
         // 
         // AxisColumn
         // 
         AxisColumn.HeaderText = "Y轴";
         AxisColumn.Name = "AxisColumn";
-        AxisColumn.Width = 80;
+        AxisColumn.Width = 70;
+        // 
+        // SeriesTypeColumn
+        // 
+        SeriesTypeColumn.HeaderText = "图表类型";
+        SeriesTypeColumn.Name = "SeriesTypeColumn";
+        SeriesTypeColumn.Width = 110;
         // 
         // rightPanel
         // 
@@ -700,6 +707,7 @@ partial class Form1
     private DataGridViewCheckBoxColumn SelectColumn;
     private DataGridViewTextBoxColumn NameColumn;
     private DataGridViewComboBoxColumn AxisColumn;
+    private DataGridViewComboBoxColumn SeriesTypeColumn;
     private Panel rightPanel;
     private Label plotTitleLabel;
     private Label plotHintLabel;
