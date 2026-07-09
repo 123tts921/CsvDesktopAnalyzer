@@ -780,9 +780,15 @@ public partial class Form1 : Form
         _formsPlot.Plot.Axes.DateTimeTicksBottom();
         _formsPlot.Plot.Font.Set("Microsoft YaHei UI");
 
-        var rightAxis = _formsPlot.Plot.Axes.AddRightAxis();
-        rightAxis.Label.Text = "Y2";
-        rightAxis.IsVisible = selections.Any(x => x.Axis == "Y2");
+        var y2Selections = selections.Where(x => x.Axis == "Y2").ToList();
+        Dictionary<string, ScottPlot.IYAxis> y2Axes = new();
+        foreach (var selection in y2Selections)
+        {
+            var axis = _formsPlot.Plot.Axes.AddRightAxis();
+            axis.Label.Text = selection.Name;
+            axis.IsVisible = true;
+            y2Axes[selection.Name] = axis;
+        }
 
         for (int i = 0; i < selections.Count; i++)
         {
@@ -793,11 +799,16 @@ public partial class Form1 : Form
 
             var scatter = _formsPlot.Plot.Add.Scatter(seriesData.Xs, seriesData.Ys);
             scatter.LegendText = selection.Name;
-            scatter.Color = ScottPlot.Color.FromHex(CurveColor(i));
+            ScottPlot.Color curveColor = ScottPlot.Color.FromHex(CurveColor(i));
+            scatter.Color = curveColor;
             ApplySeriesChartType(scatter, selection.ChartType);
 
-            if (selection.Axis == "Y2")
-                scatter.Axes.YAxis = rightAxis;
+            if (selection.Axis == "Y2" && y2Axes.TryGetValue(selection.Name, out ScottPlot.IYAxis? axis))
+            {
+                scatter.Axes.YAxis = axis;
+                if (axis is ScottPlot.AxisPanels.AxisBase axisBase)
+                    axisBase.Color(curveColor);
+            }
         }
 
         _formsPlot.Plot.Axes.Left.Label.Text = "Y1";
