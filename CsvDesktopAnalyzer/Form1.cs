@@ -780,8 +780,20 @@ public partial class Form1 : Form
         _formsPlot.Plot.Axes.DateTimeTicksBottom();
         _formsPlot.Plot.Font.Set("Microsoft YaHei UI");
 
+        var y1Selections = selections.Where(x => x.Axis == "Y1").ToList();
         var y2Selections = selections.Where(x => x.Axis == "Y2").ToList();
+        Dictionary<string, ScottPlot.IYAxis> y1Axes = new();
         Dictionary<string, ScottPlot.IYAxis> y2Axes = new();
+
+        for (int i = 0; i < y1Selections.Count; i++)
+        {
+            var selection = y1Selections[i];
+            ScottPlot.IYAxis axis = i == 0 ? _formsPlot.Plot.Axes.Left : _formsPlot.Plot.Axes.AddLeftAxis();
+            axis.Label.Text = selection.Name;
+            axis.IsVisible = true;
+            y1Axes[selection.Name] = axis;
+        }
+
         foreach (var selection in y2Selections)
         {
             var axis = _formsPlot.Plot.Axes.AddRightAxis();
@@ -803,15 +815,20 @@ public partial class Form1 : Form
             scatter.Color = curveColor;
             ApplySeriesChartType(scatter, selection.ChartType);
 
-            if (selection.Axis == "Y2" && y2Axes.TryGetValue(selection.Name, out ScottPlot.IYAxis? axis))
+            if (selection.Axis == "Y1" && y1Axes.TryGetValue(selection.Name, out ScottPlot.IYAxis? leftAxis))
             {
-                scatter.Axes.YAxis = axis;
-                if (axis is ScottPlot.AxisPanels.AxisBase axisBase)
-                    axisBase.Color(curveColor);
+                scatter.Axes.YAxis = leftAxis;
+                if (leftAxis is ScottPlot.AxisPanels.AxisBase leftAxisBase)
+                    leftAxisBase.Color(curveColor);
+            }
+            else if (selection.Axis == "Y2" && y2Axes.TryGetValue(selection.Name, out ScottPlot.IYAxis? rightAxis))
+            {
+                scatter.Axes.YAxis = rightAxis;
+                if (rightAxis is ScottPlot.AxisPanels.AxisBase rightAxisBase)
+                    rightAxisBase.Color(curveColor);
             }
         }
 
-        _formsPlot.Plot.Axes.Left.Label.Text = "Y1";
         _formsPlot.Plot.Title($"{startPicker.Value:yyyy-MM-dd HH:mm} 至 {endPicker.Value:yyyy-MM-dd HH:mm}");
         _formsPlot.Plot.ShowLegend(Alignment.UpperLeft);
         _formsPlot.Plot.Axes.AutoScale();

@@ -38,8 +38,11 @@ if ($ForcePublish -or -not (Test-Path $publishExe)) {
       -p:PublishTrimmed=false `
       -p:EnableCompressionInSingleFile=true `
       -p:IncludeNativeLibrariesForSelfExtract=true `
+      -p:RestorePackagesPath=$projectRoot\.nuget\packages `
+      -p:RestoreIgnoreFailedSources=true `
       -o .\publish\CsvDesktopAnalyzerSingleFileSelfContained `
-      --configfile .\NuGet.Config
+      --configfile .\NuGet.Config `
+      --no-restore
 
     if ($LASTEXITCODE -ne 0) {
         throw "dotnet publish failed with exit code $LASTEXITCODE"
