@@ -10,7 +10,7 @@ namespace CsvDesktopAnalyzer;
 
 public partial class Form1 : Form
 {
-    private const string DisplayModeMaxPoints = "最大点数抽样";
+    private const string DisplayModeMaxPoints = "固定点数";
     private const string DisplayModeFixedInterval = "固定时间间隔";
 
     private static readonly string[] TimeFormats =
@@ -28,12 +28,15 @@ public partial class Form1 : Form
         "yyyy-M-d"
     };
 
-    private static readonly DrawingColor AppBackColor = DrawingColor.FromArgb(245, 247, 250);
+    private static readonly DrawingColor AppBackColor = DrawingColor.FromArgb(238, 243, 247);
+    private static readonly DrawingColor ShellBackColor = DrawingColor.FromArgb(248, 251, 253);
     private static readonly DrawingColor PanelBackColor = DrawingColor.White;
-    private static readonly DrawingColor AccentColor = DrawingColor.FromArgb(44, 102, 230);
-    private static readonly DrawingColor BorderColor = DrawingColor.FromArgb(220, 224, 230);
-    private static readonly DrawingColor TextColor = DrawingColor.FromArgb(40, 44, 52);
-    private static readonly DrawingColor MutedTextColor = DrawingColor.FromArgb(108, 117, 125);
+    private static readonly DrawingColor PanelAltBackColor = DrawingColor.FromArgb(245, 248, 251);
+    private static readonly DrawingColor AccentColor = DrawingColor.FromArgb(47, 128, 237);
+    private static readonly DrawingColor AccentSoftColor = DrawingColor.FromArgb(220, 234, 250);
+    private static readonly DrawingColor BorderColor = DrawingColor.FromArgb(216, 225, 234);
+    private static readonly DrawingColor TextColor = DrawingColor.FromArgb(25, 35, 49);
+    private static readonly DrawingColor MutedTextColor = DrawingColor.FromArgb(108, 123, 140);
 
     private string? _loadedFilePath;
     private string? _timeColumn;
@@ -50,13 +53,14 @@ public partial class Form1 : Form
 
     private void InitializeRuntimeUi()
     {
-        Text = "CSV 数据分析工具";
+        Text = "CSV 桌面分析器";
         Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, DrawingFontStyle.Regular, GraphicsUnit.Point);
-        MinimumSize = new Size(1380, 860);
+        MinimumSize = new Size(1440, 920);
         StartPosition = FormStartPosition.CenterScreen;
+        Resize += (_, _) => ApplyFlatLayout();
 
-        headerTitleLabel.Text = "CSV 数据分析工具";
-        headerHintLabel.Text = "选择文件后即可筛选时间和列";
+        headerTitleLabel.Text = "CSV 桌面分析器";
+        headerHintLabel.Text = "多列对比、多轴映射、时间范围筛选";
         fileLabel.Text = "当前文件";
         timeColumnLabel.Text = "时间列";
         chartTypeLabel.Text = "默认图表类型";
@@ -65,25 +69,35 @@ public partial class Form1 : Form
         intervalLabel.Text = "固定时间间隔";
         startLabel.Text = "开始时间";
         endLabel.Text = "结束时间";
-        filtersTitleLabel.Text = "图表设置";
+        filtersTitleLabel.Text = "图表配置";
         dateTitleLabel.Text = "时间范围";
         searchTitleLabel.Text = "变量筛选";
-        plotTitleLabel.Text = "图表视图";
-        plotHintLabel.Text = "右侧显示当前筛选后的趋势图";
+        plotTitleLabel.Text = "多序列趋势对比";
+        plotHintLabel.Text = "右侧显示当前筛选后的图表，颜色与坐标轴自动对应";
         searchTextBox.PlaceholderText = "例如：电能、温度、压力";
         browseButton.Text = "选择文件";
         loadButton.Text = "加载";
         selectVisibleButton.Text = "全选当前结果";
         clearSelectionButton.Text = "清空选择";
         drawButton.Text = "绘制图表";
-        refreshPlotButton.Text = "刷新图表";
+        refreshPlotButton.Text = "刷新";
         resetViewButton.Text = "重置视图";
         exportPlotButton.Text = "导出图片";
+        statusLabel.Text = "准备就绪";
+        SelectColumn.HeaderText = "选择";
+        NameColumn.HeaderText = "数据列";
+        AxisColumn.HeaderText = "轴";
+        SeriesTypeColumn.HeaderText = "图表类型";
+        headerHintLabel.Visible = false;
+        plotHintLabel.Visible = false;
 
         filePathTextBox.Text = string.Empty;
         plotHostPanel.Controls.Add(_formsPlot);
-        _plotSummaryLabel.AutoSize = true;
-        _plotSummaryLabel.Location = new Point(360, 74);
+        _plotSummaryLabel.AutoSize = false;
+        _plotSummaryLabel.AutoEllipsis = true;
+        _plotSummaryLabel.TextAlign = ContentAlignment.MiddleRight;
+        _plotSummaryLabel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        _plotSummaryLabel.Height = 24;
         _plotSummaryLabel.Text = "未加载文件 | 0 条曲线 | 等待绘图";
         rightPanel.Controls.Add(_plotSummaryLabel);
         _plotSummaryLabel.BringToFront();
@@ -108,11 +122,19 @@ public partial class Form1 : Form
         columnGrid.AutoGenerateColumns = false;
         columnGrid.AllowUserToAddRows = false;
         columnGrid.AllowUserToDeleteRows = false;
+        columnGrid.AllowUserToResizeRows = false;
         columnGrid.RowHeadersVisible = false;
         columnGrid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
         columnGrid.MultiSelect = false;
+        columnGrid.ScrollBars = ScrollBars.Vertical;
+
+        splitter.Panel1MinSize = 430;
+        splitter.Panel2MinSize = 760;
+        splitter.SplitterDistance = 460;
+        statusStrip.SizingGrip = false;
 
         ApplyTheme();
+        ApplyFlatLayout();
         ConfigurePlot();
         SetControlState(false);
         statusLabel.Text = "请选择 CSV 文件。";
@@ -122,19 +144,24 @@ public partial class Form1 : Form
     {
         BackColor = AppBackColor;
         rootLayout.BackColor = AppBackColor;
+        splitter.BackColor = AppBackColor;
         headerPanel.BackColor = PanelBackColor;
-        rightPanel.BackColor = AppBackColor;
+        leftScrollPanel.BackColor = PanelBackColor;
+        leftLayout.BackColor = PanelBackColor;
+        filtersPanel.BackColor = PanelAltBackColor;
+        datePanel.BackColor = PanelAltBackColor;
+        actionPanel.BackColor = DrawingColor.Transparent;
+        rightPanel.BackColor = PanelBackColor;
         plotHostPanel.BackColor = PanelBackColor;
-        leftLayout.BackColor = AppBackColor;
-        filtersPanel.BackColor = PanelBackColor;
-        datePanel.BackColor = PanelBackColor;
-        actionPanel.BackColor = AppBackColor;
-        statusStrip.BackColor = PanelBackColor;
+        statusStrip.BackColor = ShellBackColor;
+        statusStrip.ForeColor = MutedTextColor;
+        statusLabel.ForeColor = MutedTextColor;
 
         headerTitleLabel.ForeColor = TextColor;
-        headerTitleLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 14F, DrawingFontStyle.Bold, GraphicsUnit.Point);
+        headerTitleLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 20F, DrawingFontStyle.Bold, GraphicsUnit.Point);
         headerHintLabel.ForeColor = MutedTextColor;
-        headerHintLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, DrawingFontStyle.Regular, GraphicsUnit.Point);
+        headerHintLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 11F, DrawingFontStyle.Regular, GraphicsUnit.Point);
+        headerHintLabel.BackColor = DrawingColor.Transparent;
 
         foreach (Control control in new Control[]
         {
@@ -154,12 +181,15 @@ public partial class Form1 : Form
         _plotSummaryLabel.BackColor = DrawingColor.Transparent;
         _plotSummaryLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, DrawingFontStyle.Regular, GraphicsUnit.Point);
 
-        StylePanel(headerPanel);
-        StylePanel(filtersPanel);
-        StylePanel(datePanel);
-        StylePanel(plotHostPanel);
+        StylePanel(headerPanel, PanelBackColor);
+        StylePanel(leftScrollPanel, PanelBackColor);
+        StylePanel(filtersPanel, PanelAltBackColor);
+        StylePanel(datePanel, PanelAltBackColor);
+        StylePanel(plotHostPanel, PanelBackColor);
+        headerPanel.BorderStyle = BorderStyle.FixedSingle;
         filtersPanel.BorderStyle = BorderStyle.FixedSingle;
         datePanel.BorderStyle = BorderStyle.FixedSingle;
+        rightPanel.BorderStyle = BorderStyle.FixedSingle;
         plotHostPanel.BorderStyle = BorderStyle.FixedSingle;
 
         StyleButton(browseButton, false);
@@ -167,7 +197,7 @@ public partial class Form1 : Form
         StyleButton(selectVisibleButton, false);
         StyleButton(clearSelectionButton, false);
         StyleButton(drawButton, true);
-        StyleButton(refreshPlotButton, false);
+        StyleButton(refreshPlotButton, true);
         StyleButton(resetViewButton, false);
         StyleButton(exportPlotButton, false);
         plotToolbar.BackColor = DrawingColor.Transparent;
@@ -178,31 +208,36 @@ public partial class Form1 : Form
             sampleLimitComboBox, displayModeComboBox, intervalComboBox
         })
         {
-            control.ForeColor = TextColor;
-            control.BackColor = DrawingColor.White;
+            StyleInput(control);
         }
 
+        StyleDatePicker(startPicker);
+        StyleDatePicker(endPicker);
+
         columnGrid.BackgroundColor = DrawingColor.White;
-        columnGrid.BorderStyle = BorderStyle.None;
+        columnGrid.BorderStyle = BorderStyle.FixedSingle;
         columnGrid.GridColor = BorderColor;
         columnGrid.EnableHeadersVisualStyles = false;
-        columnGrid.ColumnHeadersDefaultCellStyle.BackColor = DrawingColor.FromArgb(236, 240, 248);
+        columnGrid.ColumnHeadersDefaultCellStyle.BackColor = PanelAltBackColor;
         columnGrid.ColumnHeadersDefaultCellStyle.ForeColor = TextColor;
         columnGrid.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font(Font, DrawingFontStyle.Bold);
-        columnGrid.ColumnHeadersHeight = 36;
+        columnGrid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+        columnGrid.ColumnHeadersHeight = 38;
         columnGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
-        columnGrid.DefaultCellStyle.SelectionBackColor = DrawingColor.FromArgb(225, 234, 252);
+        columnGrid.DefaultCellStyle.SelectionBackColor = AccentSoftColor;
         columnGrid.DefaultCellStyle.SelectionForeColor = TextColor;
         columnGrid.DefaultCellStyle.BackColor = DrawingColor.White;
-        columnGrid.AlternatingRowsDefaultCellStyle.BackColor = DrawingColor.FromArgb(248, 250, 252);
+        columnGrid.AlternatingRowsDefaultCellStyle.BackColor = PanelAltBackColor;
         columnGrid.DefaultCellStyle.ForeColor = TextColor;
-        columnGrid.RowTemplate.Height = 30;
+        columnGrid.DefaultCellStyle.Padding = new Padding(4, 2, 4, 2);
+        columnGrid.RowTemplate.DefaultCellStyle.Padding = new Padding(4, 2, 4, 2);
+        columnGrid.RowTemplate.Height = 32;
     }
 
-    private static void StylePanel(Control control)
+    private static void StylePanel(Control control, DrawingColor color)
     {
         control.Padding = control.Padding == Padding.Empty ? new Padding(10) : control.Padding;
-        control.BackColor = PanelBackColor;
+        control.BackColor = color;
     }
 
     private void StyleButton(Button button, bool primary)
@@ -210,9 +245,96 @@ public partial class Form1 : Form
         button.FlatStyle = FlatStyle.Flat;
         button.FlatAppearance.BorderSize = 1;
         button.FlatAppearance.BorderColor = primary ? AccentColor : BorderColor;
-        button.BackColor = primary ? AccentColor : DrawingColor.White;
+        button.BackColor = primary ? AccentColor : PanelAltBackColor;
         button.ForeColor = primary ? DrawingColor.White : TextColor;
         button.Font = new System.Drawing.Font(Font, primary ? DrawingFontStyle.Bold : DrawingFontStyle.Regular);
+        button.Cursor = Cursors.Hand;
+    }
+
+    private static void StyleInput(Control control)
+    {
+        control.ForeColor = TextColor;
+        control.BackColor = DrawingColor.White;
+    }
+
+    private static void StyleDatePicker(DateTimePicker picker)
+    {
+        picker.CalendarForeColor = TextColor;
+        picker.CalendarMonthBackground = DrawingColor.White;
+        picker.CalendarTitleBackColor = AccentColor;
+        picker.CalendarTitleForeColor = DrawingColor.White;
+        picker.CalendarTrailingForeColor = MutedTextColor;
+    }
+
+    private void ApplyFlatLayout()
+    {
+        rootLayout.RowStyles[0].Height = 88F;
+        headerPanel.Padding = new Padding(24, 14, 24, 12);
+
+        headerTitleLabel.Location = new Point(24, 20);
+        headerHintLabel.Location = new Point(24, 54);
+
+        int buttonWidth = 92;
+        int buttonGap = 12;
+        int rightMargin = 24;
+        int loadX = headerPanel.ClientSize.Width - rightMargin - buttonWidth;
+        int browseX = loadX - buttonGap - 108;
+        int inputX = 430;
+        int inputWidth = Math.Max(360, browseX - inputX - 12);
+
+        fileLabel.Location = new Point(inputX, 16);
+        filePathTextBox.Location = new Point(inputX, 42);
+        filePathTextBox.Size = new Size(inputWidth, 30);
+        browseButton.Location = new Point(browseX, 40);
+        browseButton.Size = new Size(108, 34);
+        loadButton.Location = new Point(loadX, 40);
+        loadButton.Size = new Size(buttonWidth, 34);
+
+        leftScrollPanel.Padding = new Padding(16);
+        leftLayout.Width = Math.Max(400, leftScrollPanel.ClientSize.Width - 32);
+        filtersPanel.Margin = new Padding(3, 4, 3, 16);
+        datePanel.Margin = new Padding(3, 4, 3, 16);
+        searchTextBox.Margin = new Padding(3, 4, 3, 12);
+        actionPanel.Margin = new Padding(0, 0, 0, 12);
+        actionPanel.WrapContents = true;
+        actionPanel.AutoSize = true;
+        actionPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        selectVisibleButton.Size = new Size(132, 34);
+        clearSelectionButton.Size = new Size(110, 34);
+        drawButton.Size = new Size(110, 34);
+
+        plotTitleLabel.Location = new Point(18, 18);
+        plotTitleLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 18F, DrawingFontStyle.Bold, GraphicsUnit.Point);
+        plotHintLabel.Location = new Point(18, 46);
+        plotToolbar.Location = new Point(18, 60);
+        plotToolbar.AutoSize = false;
+        plotToolbar.WrapContents = false;
+        plotToolbar.Padding = new Padding(0);
+        plotToolbar.Size = new Size(360, 40);
+        refreshPlotButton.Size = new Size(108, 34);
+        resetViewButton.Size = new Size(108, 34);
+        exportPlotButton.Size = new Size(108, 34);
+        refreshPlotButton.Margin = new Padding(0, 0, 10, 0);
+        resetViewButton.Margin = new Padding(0, 0, 10, 0);
+        exportPlotButton.Margin = new Padding(0);
+
+        int summaryWidth = Math.Min(460, Math.Max(300, rightPanel.ClientSize.Width - 420));
+        _plotSummaryLabel.Location = new Point(rightPanel.ClientSize.Width - summaryWidth - 18, 66);
+        _plotSummaryLabel.Size = new Size(summaryWidth, 24);
+
+        int plotTop = 112;
+        int plotWidth = rightPanel.ClientSize.Width - 36;
+        int plotHeight = Math.Max(420, rightPanel.ClientSize.Height - plotTop - 18);
+        plotHostPanel.Location = new Point(18, plotTop);
+        plotHostPanel.Size = new Size(plotWidth, plotHeight);
+
+        int gridHeight = Math.Max(340, leftScrollPanel.ClientSize.Height - columnGrid.Top - 20);
+        columnGrid.Height = gridHeight;
+        columnGrid.Width = leftLayout.Width - 6;
+        SelectColumn.Width = 56;
+        AxisColumn.Width = 74;
+        SeriesTypeColumn.Width = 118;
+        NameColumn.Width = Math.Max(140, columnGrid.Width - SelectColumn.Width - AxisColumn.Width - SeriesTypeColumn.Width - 28);
     }
 
     private void ConfigurePlot()
@@ -220,8 +342,10 @@ public partial class Form1 : Form
         _formsPlot.Reset(new Plot());
         _formsPlot.Plot.Axes.DateTimeTicksBottom();
         _formsPlot.Plot.Font.Set("Microsoft YaHei UI");
-        _formsPlot.Plot.FigureBackground.Color = ScottPlot.Color.FromHex("#F5F7FA");
+        _formsPlot.Plot.FigureBackground.Color = ScottPlot.Color.FromHex("#FFFFFF");
         _formsPlot.Plot.DataBackground.Color = ScottPlot.Color.FromHex("#FFFFFF");
+        _formsPlot.Plot.Grid.MajorLineColor = ScottPlot.Color.FromHex("#E5EBF1");
+        _formsPlot.Plot.Grid.MinorLineColor = ScottPlot.Color.FromHex("#F2F5F8");
         _formsPlot.Plot.ShowLegend(Alignment.UpperLeft);
         _formsPlot.Refresh();
     }
@@ -837,7 +961,7 @@ public partial class Form1 : Form
         int points = data.Values.DefaultIfEmpty().Max(series => series.Xs?.Length ?? 0);
         string samplingDescription = displayModeComboBox.Text == DisplayModeFixedInterval
             ? $"固定时间间隔 {intervalComboBox.Text}"
-            : $"最大点数抽样 {sampleLimitComboBox.Text}";
+            : $"固定点数 {sampleLimitComboBox.Text}";
 
         statusLabel.Text = $"{Path.GetFileName(_loadedFilePath)} | {samplingDescription} | 当前最多 {points} 点/列 | {selections.Count} 条曲线";
         UpdatePlotSummary(selections.Count, $"{samplingDescription} | 最多 {points} 点/列");
@@ -853,8 +977,8 @@ public partial class Form1 : Form
     {
         string[] colors =
         {
-            "#2C66E6", "#18A957", "#F59E0B", "#E24A3B", "#7C3AED",
-            "#0EA5E9", "#DB2777", "#475569", "#65A30D", "#C2410C"
+            "#2F80ED", "#20A39E", "#D48A1F", "#C95D73", "#6D73D9",
+            "#0EA5E9", "#8B5CF6", "#4B5563", "#65A30D", "#C2410C"
         };
         return colors[index % colors.Length];
     }
