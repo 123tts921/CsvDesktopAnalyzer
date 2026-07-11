@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const fs = require('fs');
+const http = require('http');
 const path = require('path');
 
 function createWindow() {
@@ -19,7 +20,34 @@ function createWindow() {
 
   const dev = process.env.VITE_DEV_SERVER_URL;
   if (dev) {
-    win.loadURL(dev);
+    const url = new URL(dev);
+    // 兜底：页面加载完成但 #app 仍为空（白屏）时自动重载一次
+    win.webContents.on('did-finish-load', () => {
+      setTimeout(() => {
+        win.webContents
+          .executeJavaScript(
+            "document.getElementById('app') && document.getElementById('app').childElementCount > 0"
+          )
+          .then((ok) => {
+            if (!ok) win.reload();
+          })
+          .catch(() => {});
+      }, 2000);
+    });
+    // 探测入口模块：Vite 必须先完成依赖预构建才会返回 200，避免首屏白屏
+    const probe = () => {
+      const req = http.get({ host: url.hostname, port: url.port, path: '/src/main.js' }, (res) => {
+        res.destroy();
+        if (res.statusCode === 200) win.loadURL(dev);
+        else setTimeout(probe, 300);
+      });
+      req.on('error', () => setTimeout(probe, 300));
+      req.setTimeout(3000, () => {
+        req.destroy();
+        setTimeout(probe, 300);
+      });
+    };
+    probe();
   } else {
     win.loadFile(path.join(__dirname, '../dist/index.html'));
   }

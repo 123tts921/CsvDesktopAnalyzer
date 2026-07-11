@@ -23,40 +23,31 @@ import StatusBar from './components/StatusBar.vue';
 </script>
 
 <style>
-html,
-body,
-#app {
-  height: 100%;
-  margin: 0;
-}
 .app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  font-family: 'Microsoft YaHei UI', system-ui, sans-serif;
-  background: #eef3f7;
-  color: #192331;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  background: var(--c-bg);
+  color: var(--c-text);
 }
 .app-header {
-  background: #fff;
-  border-bottom: 1px solid #d8e1ea;
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
 }
 .app-body {
-  flex: 1;
-  display: flex;
-  min-height: 0;
+  display: grid;
+  grid-template-columns: 460px 1fr;
 }
 .app-left {
-  width: 460px;
   min-width: 460px;
-  padding: 12px;
-  overflow: auto;
-  background: #fff;
-  border-right: 1px solid #d8e1ea;
+  padding: var(--s-3);
+  overflow: visible;
+  background: var(--c-surface);
+  border-right: 1px solid var(--c-border);
 }
 .app-right {
-  flex: 1;
-  padding: 12px;
+  padding: var(--s-3);
   min-width: 0;
 }
 </style>

@@ -45,6 +45,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
     seriesData: {},
     lastSpecs: [],
     drawVersion: 0,
+    loading: false,
     status: '准备就绪',
     plotSummary: '未加载文件 | 0 条曲线 | 等待绘图',
   }),
@@ -66,6 +67,7 @@ export const useAnalyzerStore = defineStore('analyzer', {
   actions: {
     async loadFile(path) {
       this.filePath = path;
+      this.loading = true;
       this.status = '正在加载 CSV 到内存...';
       try {
         const buf = await window.api.readBuffer(path);
@@ -90,6 +92,8 @@ export const useAnalyzerStore = defineStore('analyzer', {
       } catch (err) {
         this.status = `加载失败：${err.message}`;
         Message.error(`加载失败：${err.message}`);
+      } finally {
+        this.loading = false;
       }
     },
     _applyPayload(p, path) {

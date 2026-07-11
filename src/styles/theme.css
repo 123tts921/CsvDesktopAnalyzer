@@ -1,0 +1,90 @@
+/* ============================================================
+ * 设计令牌（Design Tokens）
+ * 依据 UI_STYLE_PLAN.md §2，源自 brand-guidelines 配色，转为语义令牌。
+ * 引入顺序：必须在 tdesign.css 之后（见 main.js）。
+ * ============================================================ */
+
+:root {
+  /* ---------- 中性暖灰 ---------- */
+  --c-bg: #faf9f5;         /* 应用底 */
+  --c-surface: #ffffff;    /* 卡片/面板 */
+  --c-surface-2: #f5f3ee;  /* 次级表面：输入框底、悬停底 */
+  --c-border: #e3e0d8;     /* 分隔/边框 */
+  --c-text: #141413;       /* 主文字 */
+  --c-text-2: #57534e;     /* 次级文字 */
+  --c-text-3: #b0aea5;     /* 弱化/占位 */
+
+  /* ---------- 强调色（饱和 < 80%） ---------- */
+  --c-primary: #6a9bcc;    /* 主操作 / 数据主色（专业蓝） */
+  --c-primary-h: #5b8cbd;  /* hover */
+  --c-primary-a: #d97757;  /* 强调 / 选中高亮 / 警告（橙） */
+  --c-success: #788c5d;    /* 成功 / 通过（绿） */
+  --c-danger: #c2554a;     /* 错误（低饱和红） */
+
+  /* ---------- 圆角 / 阴影 / 间距 / 动效 ---------- */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --sh-card: 0 1px 2px rgba(20, 20, 19, 0.04), 0 4px 14px rgba(20, 20, 19, 0.05);
+  --sh-pop: 0 6px 24px rgba(20, 20, 19, 0.12);
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur: 180ms;
+
+  /* ---------- 字体（dashboard 不用 serif） ---------- */
+  --font-head: 'Poppins', 'Microsoft YaHei UI', system-ui, sans-serif;
+  --font-body: 'Microsoft YaHei UI', system-ui, -apple-system, sans-serif;
+
+  /* ---------- 覆盖 TDesign 主题变量（零依赖） ---------- */
+  --td-brand-color: var(--c-primary);
+  --td-brand-color-hover: var(--c-primary-h);
+  --td-bg-color-page: var(--c-bg);
+  --td-bg-color-container: var(--c-surface);
+  --td-border-level-1-color: var(--c-border);
+  --td-text-color-primary: var(--c-text);
+  --td-text-color-secondary: var(--c-text-2);
+  --td-radius-default: var(--r-md);
+  --td-comp-size-m: 36px;
+}
+
+/* ============================================================
+ * 深色模式：body[data-theme="dark"] 覆盖令牌
+ * 复用 brand-guidelines：Dark #141413 作底，Light #faf9f5 作字。
+ * TDesign 原生暗色由 <html theme-mode="dark"> 触发（见 HeaderBar）。
+ * ============================================================ */
+body[data-theme='dark'] {
+  --c-bg: #141413;
+  --c-surface: #1f1e1c;
+  --c-surface-2: #2a2825;
+  --c-border: #33302b;
+  --c-text: #faf9f5;
+  --c-text-2: #c9c6bf;
+  --c-text-3: #7c7871;
+
+  --c-primary: #7aa9d6;
+  --c-primary-h: #8fb8de;
+  --c-primary-a: #e08a6c;
+  --c-success: #8ba06d;
+  --c-danger: #d06a5f;
+
+  --sh-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.35);
+  --sh-pop: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- 全局基线 ---------- */
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+body {
+  font-family: var(--font-body);
+  color: var(--c-text);
+  background: var(--c-bg);
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}

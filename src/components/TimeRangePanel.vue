@@ -20,9 +20,3 @@ function onChange(v) {
   if (Array.isArray(v) && v.length === 2) store.timeRange = v;
 }
 </script>
-
-<style scoped>
-.panel {
-  margin-bottom: 16px;
-}
-</style>

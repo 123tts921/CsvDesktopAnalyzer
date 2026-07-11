@@ -1,13 +1,12 @@
 <template>
   <t-card title="图表配置" :bordered="true" class="panel">
-    <t-form layout="inline">
+    <t-form layout="vertical" class="cfg-form">
       <t-form-item label="时间列">
         <t-select
           :value="store.timeColumn"
           :options="headerOptions"
           @change="store.setTimeColumn"
           :disabled="!store.loaded"
-          style="width: 160px"
         />
       </t-form-item>
       <t-form-item label="默认图表类型">
@@ -15,7 +14,6 @@
           :value="store.defaultChartType"
           :options="types"
           @change="store.setDefaultChartType"
-          style="width: 140px"
         />
       </t-form-item>
       <t-form-item label="每条曲线最多点数">
@@ -24,7 +22,6 @@
           :options="points"
           @change="store.setMaxPoints"
           :disabled="store.displayMode !== '固定点数'"
-          style="width: 120px"
         />
       </t-form-item>
       <t-form-item label="显示模式">
@@ -32,7 +29,6 @@
           :value="store.displayMode"
           :options="modes"
           @change="store.setDisplayMode"
-          style="width: 140px"
         />
       </t-form-item>
       <t-form-item label="固定时间间隔">
@@ -41,7 +37,6 @@
           :options="intervals"
           @change="store.setInterval"
           :disabled="store.displayMode !== '固定时间间隔'"
-          style="width: 120px"
         />
       </t-form-item>
     </t-form>
@@ -67,7 +62,14 @@ const intervals = ['1分钟', '5分钟', '10分钟', '30分钟', '1小时'].map(
 </script>
 
 <style scoped>
-.panel {
-  margin-bottom: 16px;
+.cfg-form :deep(.t-form__item) {
+  margin-bottom: 12px;
+}
+.cfg-form :deep(.t-form__label) {
+  min-width: 96px;
+  white-space: nowrap;
+}
+.cfg-form :deep(.t-select) {
+  width: 100%;
 }
 </style>

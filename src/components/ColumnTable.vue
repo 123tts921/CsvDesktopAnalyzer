@@ -1,5 +1,5 @@
 <template>
-  <t-card title="变量筛选" :bordered="true">
+  <t-card title="变量筛选" :bordered="true" class="panel">
     <t-input
       :value="search"
       placeholder="例如：电能、温度、压力"
