@@ -1,0 +1,35 @@
+{
+  "name": "CsvDesktopAnalyzer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CSV 桌面分析器 (Electron + Vue3 + TDesign + ECharts)",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "build:web": "vite build",
+    "build": "npm run build:web && electron-builder",
+    "pack:portable": "npm run build:web && electron-builder --win portable",
+    "dist:win": "npm run build:web && electron-builder --win nsis portable",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "echarts": "^5.5.0",
+    "jschardet": "^1.6.0",
+    "papaparse": "^5.4.1",
+    "pinia": "^2.1.7",
+    "tdesign-vue-next": "^1.9.0",
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "concurrently": "^8.2.0",
+    "cross-env": "^7.0.3",
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.0",
+    "vite": "^5.2.0",
+    "vitest": "^1.6.0"
+  }
+}

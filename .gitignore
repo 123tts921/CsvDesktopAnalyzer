@@ -17,3 +17,10 @@ CsvDesktopAnalyzer/*.user
 *.zip
 *.exe
 *.pdb
+
+# Node / Electron / Vite (added by refactor)
+node_modules/
+test-results/
+playwright-report/
+coverage/
+.vite/

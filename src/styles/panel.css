@@ -1,0 +1,46 @@
+/* ============================================================
+ * .panel —— 左栏面板统一规范（UI_STYLE_PLAN.md §3）
+ * 全局样式：可穿透 TDesign 的 t-card 内部结构，供各面板复用。
+ * ============================================================ */
+
+.panel {
+  margin-bottom: var(--s-3);
+  border: 1px solid var(--c-border) !important;
+  border-radius: var(--r-md) !important;
+  background: var(--c-surface) !important;
+  box-shadow: var(--sh-card);
+  transition: box-shadow var(--dur) var(--ease);
+}
+.panel:last-child {
+  margin-bottom: 0;
+}
+
+/* 卡片标题：左侧 3px 主色条 + 标题字体 */
+.panel .t-card__title {
+  position: relative;
+  padding-left: 12px;
+  font-family: var(--font-head);
+  font-weight: 600;
+  color: var(--c-text);
+}
+.panel .t-card__title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--c-primary);
+}
+
+/* 表格头/行 hover 使用次级表面 */
+.panel .t-table__header th,
+.panel .t-table th {
+  background: var(--c-surface-2) !important;
+  color: var(--c-text-2) !important;
+}
+.panel .t-table__body tr:hover td {
+  background: var(--c-surface-2) !important;
+}
