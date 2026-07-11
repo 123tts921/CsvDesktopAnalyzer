@@ -1,0 +1,16 @@
+appId: com.csvanalyzer.app
+productName: CsvDesktopAnalyzer
+files:
+  - dist/**/*
+  - electron/**/*
+directories:
+  output: publish
+win:
+  target:
+    - nsis
+    - portable
+  artifactName: CsvDesktopAnalyzer-${name}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
