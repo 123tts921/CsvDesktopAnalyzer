@@ -47,6 +47,7 @@ public partial class Form1 : Form
     private readonly System.Windows.Forms.Label _plotSummaryLabel = new();
     private readonly TableLayoutPanel _headerLayout = new();
     private readonly TableLayoutPanel _fileBarLayout = new();
+    private readonly FlowLayoutPanel _fileActionPanel = new();
     private readonly TableLayoutPanel _rightLayout = new();
 
     public Form1()
@@ -190,8 +191,21 @@ public partial class Form1 : Form
         _fileBarLayout.Controls.Clear();
         _fileBarLayout.ColumnStyles.Clear();
         _fileBarLayout.RowStyles.Clear();
-        _fileBarLayout.ColumnCount = 4;
-        _fileBarLayout.RowCount = 1;
+        _fileActionPanel.SuspendLayout();
+        _fileActionPanel.Controls.Clear();
+        _fileActionPanel.FlowDirection = FlowDirection.LeftToRight;
+        _fileActionPanel.WrapContents = false;
+        _fileActionPanel.AutoSize = true;
+        _fileActionPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        _fileActionPanel.Dock = DockStyle.Right;
+        _fileActionPanel.Margin = Padding.Empty;
+        _fileActionPanel.Padding = Padding.Empty;
+        _fileActionPanel.Controls.Add(browseButton);
+        _fileActionPanel.Controls.Add(loadButton);
+        _fileActionPanel.ResumeLayout(false);
+
+        _fileBarLayout.ColumnCount = 3;
+        _fileBarLayout.RowCount = 2;
         _fileBarLayout.AutoSize = false;
         _fileBarLayout.Dock = DockStyle.Fill;
         _fileBarLayout.Margin = new Padding(0, 8, 0, 0);
@@ -199,30 +213,29 @@ public partial class Form1 : Form
         _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
         _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         _fileBarLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
+        _fileBarLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 0F));
         _fileBarLayout.Height = 36;
 
-        fileLabel.AutoSize = false;
-        fileLabel.Width = 78;
+        fileLabel.AutoSize = true;
+        fileLabel.MinimumSize = new Size(78, 0);
         fileLabel.Height = 36;
         fileLabel.Margin = new Padding(0, 0, 12, 0);
-        fileLabel.Anchor = AnchorStyles.Left | AnchorStyles.Top;
+        fileLabel.Anchor = AnchorStyles.Left;
         fileLabel.TextAlign = ContentAlignment.MiddleLeft;
         filePathTextBox.Dock = DockStyle.Fill;
-        filePathTextBox.Multiline = true;
+        filePathTextBox.Multiline = false;
         filePathTextBox.BorderStyle = BorderStyle.FixedSingle;
         filePathTextBox.Margin = new Padding(0, 0, 12, 0);
-        filePathTextBox.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
-        browseButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        filePathTextBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+        browseButton.Anchor = AnchorStyles.None;
         browseButton.Margin = new Padding(0, 0, 10, 0);
-        loadButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        loadButton.Anchor = AnchorStyles.None;
         loadButton.Margin = Padding.Empty;
 
         _fileBarLayout.Controls.Add(fileLabel, 0, 0);
         _fileBarLayout.Controls.Add(filePathTextBox, 1, 0);
-        _fileBarLayout.Controls.Add(browseButton, 2, 0);
-        _fileBarLayout.Controls.Add(loadButton, 3, 0);
+        _fileBarLayout.Controls.Add(_fileActionPanel, 2, 0);
         _fileBarLayout.ResumeLayout(false);
         _fileBarLayout.PerformLayout();
 
@@ -459,14 +472,14 @@ public partial class Form1 : Form
     {
         rootLayout.RowStyles[0].Height = 132F;
         headerPanel.Padding = new Padding(24, 14, 24, 14);
-        _fileBarLayout.Height = 36;
         fileLabel.Height = 36;
-        filePathTextBox.MinimumSize = new Size(320, 36);
+        filePathTextBox.MinimumSize = new Size(160, 36);
         filePathTextBox.Height = 36;
         browseButton.Size = new Size(128, 36);
         browseButton.MinimumSize = new Size(128, 36);
         loadButton.Size = new Size(96, 36);
         loadButton.MinimumSize = new Size(96, 36);
+        UpdateFileBarResponsiveLayout();
 
         leftScrollPanel.Padding = new Padding(16);
         leftLayout.Width = Math.Max(400, leftScrollPanel.ClientSize.Width - 32);
@@ -514,6 +527,32 @@ public partial class Form1 : Form
         AxisColumn.Width = 86;
         SeriesTypeColumn.Width = 132;
         NameColumn.Width = Math.Max(140, columnGrid.Width - SelectColumn.Width - AxisColumn.Width - SeriesTypeColumn.Width - 32);
+    }
+
+    private void UpdateFileBarResponsiveLayout()
+    {
+        int availableWidth = Math.Max(0, headerPanel.ClientSize.Width - headerPanel.Padding.Horizontal);
+        bool compactLayout = availableWidth < 900;
+
+        _fileBarLayout.SuspendLayout();
+        _fileActionPanel.SuspendLayout();
+
+        _fileBarLayout.RowCount = compactLayout ? 2 : 1;
+        _fileBarLayout.RowStyles[0].Height = 36F;
+        _fileBarLayout.RowStyles[1].Height = compactLayout ? 36F : 0F;
+        _fileBarLayout.Height = compactLayout ? 78 : 36;
+
+        _fileBarLayout.Controls.Remove(_fileActionPanel);
+        _fileBarLayout.Controls.Add(_fileActionPanel, compactLayout ? 1 : 2, compactLayout ? 1 : 0);
+        _fileBarLayout.SetColumnSpan(_fileActionPanel, compactLayout ? 2 : 1);
+
+        _fileActionPanel.FlowDirection = compactLayout ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+        _fileActionPanel.Dock = compactLayout ? DockStyle.Fill : DockStyle.Right;
+        browseButton.Margin = compactLayout ? new Padding(10, 0, 0, 0) : new Padding(0, 0, 10, 0);
+        loadButton.Margin = Padding.Empty;
+
+        _fileActionPanel.ResumeLayout(true);
+        _fileBarLayout.ResumeLayout(true);
     }
 
     private void ConfigurePlot()
