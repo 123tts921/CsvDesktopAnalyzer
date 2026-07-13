@@ -17,3 +17,7 @@ CsvDesktopAnalyzer/*.user
 *.zip
 *.exe
 *.pdb
+.workbuddy/
+CsvDesktopAnalyzer.Flat/
+CsvDesktopAnalyzer.backup/
+corehost-trace.txt

@@ -1,3 +1,4 @@
+using System.Drawing;
 using System.Globalization;
 using System.Text;
 using Microsoft.VisualBasic.FileIO;
@@ -29,14 +30,14 @@ public partial class Form1 : Form
     };
 
     private static readonly DrawingColor AppBackColor = DrawingColor.FromArgb(238, 243, 247);
-    private static readonly DrawingColor ShellBackColor = DrawingColor.FromArgb(248, 251, 253);
+    private static readonly DrawingColor ShellBackColor = DrawingColor.FromArgb(249, 250, 251);
     private static readonly DrawingColor PanelBackColor = DrawingColor.White;
-    private static readonly DrawingColor PanelAltBackColor = DrawingColor.FromArgb(245, 248, 251);
-    private static readonly DrawingColor AccentColor = DrawingColor.FromArgb(47, 128, 237);
-    private static readonly DrawingColor AccentSoftColor = DrawingColor.FromArgb(220, 234, 250);
-    private static readonly DrawingColor BorderColor = DrawingColor.FromArgb(216, 225, 234);
-    private static readonly DrawingColor TextColor = DrawingColor.FromArgb(25, 35, 49);
-    private static readonly DrawingColor MutedTextColor = DrawingColor.FromArgb(108, 123, 140);
+    private static readonly DrawingColor PanelAltBackColor = DrawingColor.FromArgb(246, 248, 251);
+    private static readonly DrawingColor AccentColor = DrawingColor.FromArgb(15, 108, 189);
+    private static readonly DrawingColor AccentSoftColor = DrawingColor.FromArgb(222, 236, 249);
+    private static readonly DrawingColor BorderColor = DrawingColor.FromArgb(221, 226, 232);
+    private static readonly DrawingColor TextColor = DrawingColor.FromArgb(32, 31, 30);
+    private static readonly DrawingColor MutedTextColor = DrawingColor.FromArgb(96, 94, 92);
 
     private string? _loadedFilePath;
     private string? _timeColumn;
@@ -44,6 +45,9 @@ public partial class Form1 : Form
     private bool _refreshing;
     private readonly FormsPlot _formsPlot = new() { Dock = DockStyle.Fill };
     private readonly System.Windows.Forms.Label _plotSummaryLabel = new();
+    private readonly TableLayoutPanel _headerLayout = new();
+    private readonly TableLayoutPanel _fileBarLayout = new();
+    private readonly TableLayoutPanel _rightLayout = new();
 
     public Form1()
     {
@@ -57,6 +61,15 @@ public partial class Form1 : Form
         Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, DrawingFontStyle.Regular, GraphicsUnit.Point);
         MinimumSize = new Size(1440, 920);
         StartPosition = FormStartPosition.CenterScreen;
+        ShowIcon = true;
+        ShowInTaskbar = true;
+        try
+        {
+            Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+        }
+        catch
+        {
+        }
         Resize += (_, _) => ApplyFlatLayout();
 
         headerTitleLabel.Text = "CSV 桌面分析器";
@@ -93,11 +106,11 @@ public partial class Form1 : Form
 
         filePathTextBox.Text = string.Empty;
         plotHostPanel.Controls.Add(_formsPlot);
-        _plotSummaryLabel.AutoSize = false;
-        _plotSummaryLabel.AutoEllipsis = true;
-        _plotSummaryLabel.TextAlign = ContentAlignment.MiddleRight;
-        _plotSummaryLabel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-        _plotSummaryLabel.Height = 24;
+        _plotSummaryLabel.AutoSize = true;
+        _plotSummaryLabel.AutoEllipsis = false;
+        _plotSummaryLabel.TextAlign = ContentAlignment.TopLeft;
+        _plotSummaryLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        _plotSummaryLabel.MaximumSize = new Size(0, 0);
         _plotSummaryLabel.Text = "未加载文件 | 0 条曲线 | 等待绘图";
         rightPanel.Controls.Add(_plotSummaryLabel);
         _plotSummaryLabel.BringToFront();
@@ -133,11 +146,183 @@ public partial class Form1 : Form
         splitter.SplitterDistance = 460;
         statusStrip.SizingGrip = false;
 
+        BuildAdaptiveShell();
         ApplyTheme();
         ApplyFlatLayout();
         ConfigurePlot();
         SetControlState(false);
         statusLabel.Text = "请选择 CSV 文件。";
+    }
+
+    private void BuildAdaptiveShell()
+    {
+        BuildHeaderLayout();
+        BuildLeftCards();
+        BuildRightLayout();
+    }
+
+    private void BuildHeaderLayout()
+    {
+        headerPanel.SuspendLayout();
+        headerPanel.Controls.Clear();
+
+        _headerLayout.SuspendLayout();
+        _headerLayout.Controls.Clear();
+        _headerLayout.ColumnStyles.Clear();
+        _headerLayout.RowStyles.Clear();
+        _headerLayout.ColumnCount = 1;
+        _headerLayout.RowCount = 2;
+        _headerLayout.AutoSize = true;
+        _headerLayout.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        _headerLayout.Dock = DockStyle.Fill;
+        _headerLayout.Margin = Padding.Empty;
+        _headerLayout.Padding = Padding.Empty;
+        _headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        _headerLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        _headerLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+        headerTitleLabel.Dock = DockStyle.Fill;
+        headerTitleLabel.Margin = new Padding(0, 0, 0, 2);
+        headerHintLabel.Dock = DockStyle.Fill;
+        headerHintLabel.Margin = Padding.Empty;
+
+        _fileBarLayout.SuspendLayout();
+        _fileBarLayout.Controls.Clear();
+        _fileBarLayout.ColumnStyles.Clear();
+        _fileBarLayout.RowStyles.Clear();
+        _fileBarLayout.ColumnCount = 4;
+        _fileBarLayout.RowCount = 1;
+        _fileBarLayout.AutoSize = false;
+        _fileBarLayout.Dock = DockStyle.Fill;
+        _fileBarLayout.Margin = new Padding(0, 8, 0, 0);
+        _fileBarLayout.Padding = Padding.Empty;
+        _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        _fileBarLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
+        _fileBarLayout.Height = 36;
+
+        fileLabel.AutoSize = false;
+        fileLabel.Width = 78;
+        fileLabel.Height = 36;
+        fileLabel.Margin = new Padding(0, 0, 12, 0);
+        fileLabel.Anchor = AnchorStyles.Left | AnchorStyles.Top;
+        fileLabel.TextAlign = ContentAlignment.MiddleLeft;
+        filePathTextBox.Dock = DockStyle.Fill;
+        filePathTextBox.Multiline = true;
+        filePathTextBox.BorderStyle = BorderStyle.FixedSingle;
+        filePathTextBox.Margin = new Padding(0, 0, 12, 0);
+        filePathTextBox.Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top;
+        browseButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        browseButton.Margin = new Padding(0, 0, 10, 0);
+        loadButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        loadButton.Margin = Padding.Empty;
+
+        _fileBarLayout.Controls.Add(fileLabel, 0, 0);
+        _fileBarLayout.Controls.Add(filePathTextBox, 1, 0);
+        _fileBarLayout.Controls.Add(browseButton, 2, 0);
+        _fileBarLayout.Controls.Add(loadButton, 3, 0);
+        _fileBarLayout.ResumeLayout(false);
+        _fileBarLayout.PerformLayout();
+
+        _headerLayout.Controls.Add(headerTitleLabel, 0, 0);
+        _headerLayout.Controls.Add(_fileBarLayout, 0, 1);
+        _headerLayout.ResumeLayout(false);
+        _headerLayout.PerformLayout();
+
+        headerPanel.Controls.Add(_headerLayout);
+        headerPanel.ResumeLayout(false);
+    }
+
+    private void BuildLeftCards()
+    {
+        filtersPanel.SuspendLayout();
+        filtersPanel.ColumnStyles.Clear();
+        filtersPanel.RowStyles.Clear();
+        filtersPanel.ColumnCount = 1;
+        filtersPanel.RowCount = 10;
+        filtersPanel.AutoSize = true;
+        filtersPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        filtersPanel.Dock = DockStyle.Top;
+        filtersPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        for (int index = 0; index < 10; index++)
+            filtersPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+        filtersPanel.SetCellPosition(timeColumnLabel, new TableLayoutPanelCellPosition(0, 0));
+        filtersPanel.SetCellPosition(timeColumnComboBox, new TableLayoutPanelCellPosition(0, 1));
+        filtersPanel.SetCellPosition(chartTypeLabel, new TableLayoutPanelCellPosition(0, 2));
+        filtersPanel.SetCellPosition(chartTypeComboBox, new TableLayoutPanelCellPosition(0, 3));
+        filtersPanel.SetCellPosition(displayModeLabel, new TableLayoutPanelCellPosition(0, 4));
+        filtersPanel.SetCellPosition(displayModeComboBox, new TableLayoutPanelCellPosition(0, 5));
+        filtersPanel.SetCellPosition(sampleLimitLabel, new TableLayoutPanelCellPosition(0, 6));
+        filtersPanel.SetCellPosition(sampleLimitComboBox, new TableLayoutPanelCellPosition(0, 7));
+        filtersPanel.SetCellPosition(intervalLabel, new TableLayoutPanelCellPosition(0, 8));
+        filtersPanel.SetCellPosition(intervalComboBox, new TableLayoutPanelCellPosition(0, 9));
+        filtersPanel.ResumeLayout(false);
+        filtersPanel.PerformLayout();
+
+        datePanel.SuspendLayout();
+        datePanel.ColumnStyles.Clear();
+        datePanel.RowStyles.Clear();
+        datePanel.ColumnCount = 1;
+        datePanel.RowCount = 4;
+        datePanel.AutoSize = true;
+        datePanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        datePanel.Dock = DockStyle.Top;
+        datePanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        for (int index = 0; index < 4; index++)
+            datePanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+        datePanel.SetCellPosition(startLabel, new TableLayoutPanelCellPosition(0, 0));
+        datePanel.SetCellPosition(startPicker, new TableLayoutPanelCellPosition(0, 1));
+        datePanel.SetCellPosition(endLabel, new TableLayoutPanelCellPosition(0, 2));
+        datePanel.SetCellPosition(endPicker, new TableLayoutPanelCellPosition(0, 3));
+        datePanel.ResumeLayout(false);
+        datePanel.PerformLayout();
+    }
+
+    private void BuildRightLayout()
+    {
+        rightPanel.SuspendLayout();
+        rightPanel.Controls.Clear();
+
+        _rightLayout.SuspendLayout();
+        _rightLayout.Controls.Clear();
+        _rightLayout.ColumnStyles.Clear();
+        _rightLayout.RowStyles.Clear();
+        _rightLayout.ColumnCount = 1;
+        _rightLayout.RowCount = 4;
+        _rightLayout.Dock = DockStyle.Fill;
+        _rightLayout.Margin = Padding.Empty;
+        _rightLayout.Padding = Padding.Empty;
+        _rightLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        _rightLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        _rightLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        _rightLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        _rightLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+
+        plotTitleLabel.Dock = DockStyle.Fill;
+        plotTitleLabel.Margin = new Padding(0, 0, 0, 8);
+        plotToolbar.Dock = DockStyle.Fill;
+        plotToolbar.AutoSize = true;
+        plotToolbar.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        plotToolbar.WrapContents = true;
+        plotToolbar.Margin = new Padding(0, 0, 0, 8);
+        _plotSummaryLabel.Dock = DockStyle.Fill;
+        _plotSummaryLabel.Margin = new Padding(0, 0, 0, 12);
+        plotHostPanel.Dock = DockStyle.Fill;
+        plotHostPanel.Margin = Padding.Empty;
+
+        _rightLayout.Controls.Add(plotTitleLabel, 0, 0);
+        _rightLayout.Controls.Add(plotToolbar, 0, 1);
+        _rightLayout.Controls.Add(_plotSummaryLabel, 0, 2);
+        _rightLayout.Controls.Add(plotHostPanel, 0, 3);
+        _rightLayout.ResumeLayout(false);
+        _rightLayout.PerformLayout();
+
+        rightPanel.Controls.Add(_rightLayout);
+        rightPanel.ResumeLayout(false);
     }
 
     private void ApplyTheme()
@@ -156,11 +341,14 @@ public partial class Form1 : Form
         statusStrip.BackColor = ShellBackColor;
         statusStrip.ForeColor = MutedTextColor;
         statusLabel.ForeColor = MutedTextColor;
+        _headerLayout.BackColor = DrawingColor.Transparent;
+        _fileBarLayout.BackColor = DrawingColor.Transparent;
+        _rightLayout.BackColor = DrawingColor.Transparent;
 
         headerTitleLabel.ForeColor = TextColor;
-        headerTitleLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 20F, DrawingFontStyle.Bold, GraphicsUnit.Point);
+        headerTitleLabel.Font = new System.Drawing.Font("Segoe UI Semibold", 18F, DrawingFontStyle.Bold, GraphicsUnit.Point);
         headerHintLabel.ForeColor = MutedTextColor;
-        headerHintLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 11F, DrawingFontStyle.Regular, GraphicsUnit.Point);
+        headerHintLabel.Font = new System.Drawing.Font("Segoe UI", 10F, DrawingFontStyle.Regular, GraphicsUnit.Point);
         headerHintLabel.BackColor = DrawingColor.Transparent;
 
         foreach (Control control in new Control[]
@@ -176,10 +364,10 @@ public partial class Form1 : Form
 
         plotHintLabel.ForeColor = MutedTextColor;
         plotHintLabel.BackColor = DrawingColor.Transparent;
-        plotHintLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, DrawingFontStyle.Regular, GraphicsUnit.Point);
+        plotHintLabel.Font = new System.Drawing.Font("Segoe UI", 9F, DrawingFontStyle.Regular, GraphicsUnit.Point);
         _plotSummaryLabel.ForeColor = MutedTextColor;
         _plotSummaryLabel.BackColor = DrawingColor.Transparent;
-        _plotSummaryLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 9F, DrawingFontStyle.Regular, GraphicsUnit.Point);
+        _plotSummaryLabel.Font = new System.Drawing.Font("Segoe UI", 9F, DrawingFontStyle.Regular, GraphicsUnit.Point);
 
         StylePanel(headerPanel, PanelBackColor);
         StylePanel(leftScrollPanel, PanelBackColor);
@@ -236,7 +424,7 @@ public partial class Form1 : Form
 
     private static void StylePanel(Control control, DrawingColor color)
     {
-        control.Padding = control.Padding == Padding.Empty ? new Padding(10) : control.Padding;
+        control.Padding = control.Padding == Padding.Empty ? new Padding(12) : control.Padding;
         control.BackColor = color;
     }
 
@@ -245,10 +433,11 @@ public partial class Form1 : Form
         button.FlatStyle = FlatStyle.Flat;
         button.FlatAppearance.BorderSize = 1;
         button.FlatAppearance.BorderColor = primary ? AccentColor : BorderColor;
-        button.BackColor = primary ? AccentColor : PanelAltBackColor;
+        button.BackColor = primary ? AccentColor : DrawingColor.White;
         button.ForeColor = primary ? DrawingColor.White : TextColor;
-        button.Font = new System.Drawing.Font(Font, primary ? DrawingFontStyle.Bold : DrawingFontStyle.Regular);
+        button.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, primary ? DrawingFontStyle.Bold : DrawingFontStyle.Regular);
         button.Cursor = Cursors.Hand;
+        button.Padding = new Padding(10, 0, 10, 0);
     }
 
     private static void StyleInput(Control control)
@@ -268,27 +457,16 @@ public partial class Form1 : Form
 
     private void ApplyFlatLayout()
     {
-        rootLayout.RowStyles[0].Height = 88F;
-        headerPanel.Padding = new Padding(24, 14, 24, 12);
-
-        headerTitleLabel.Location = new Point(24, 20);
-        headerHintLabel.Location = new Point(24, 54);
-
-        int buttonWidth = 92;
-        int buttonGap = 12;
-        int rightMargin = 24;
-        int loadX = headerPanel.ClientSize.Width - rightMargin - buttonWidth;
-        int browseX = loadX - buttonGap - 108;
-        int inputX = 430;
-        int inputWidth = Math.Max(360, browseX - inputX - 12);
-
-        fileLabel.Location = new Point(inputX, 16);
-        filePathTextBox.Location = new Point(inputX, 42);
-        filePathTextBox.Size = new Size(inputWidth, 30);
-        browseButton.Location = new Point(browseX, 40);
-        browseButton.Size = new Size(108, 34);
-        loadButton.Location = new Point(loadX, 40);
-        loadButton.Size = new Size(buttonWidth, 34);
+        rootLayout.RowStyles[0].Height = 132F;
+        headerPanel.Padding = new Padding(24, 14, 24, 14);
+        _fileBarLayout.Height = 36;
+        fileLabel.Height = 36;
+        filePathTextBox.MinimumSize = new Size(320, 36);
+        filePathTextBox.Height = 36;
+        browseButton.Size = new Size(128, 36);
+        browseButton.MinimumSize = new Size(128, 36);
+        loadButton.Size = new Size(96, 36);
+        loadButton.MinimumSize = new Size(96, 36);
 
         leftScrollPanel.Padding = new Padding(16);
         leftLayout.Width = Math.Max(400, leftScrollPanel.ClientSize.Width - 32);
@@ -299,42 +477,43 @@ public partial class Form1 : Form
         actionPanel.WrapContents = true;
         actionPanel.AutoSize = true;
         actionPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        selectVisibleButton.Size = new Size(132, 34);
-        clearSelectionButton.Size = new Size(110, 34);
-        drawButton.Size = new Size(110, 34);
+        selectVisibleButton.Size = new Size(148, 36);
+        clearSelectionButton.Size = new Size(120, 36);
+        drawButton.Size = new Size(120, 36);
+        plotTitleLabel.Font = new System.Drawing.Font("Segoe UI Semibold", 16F, DrawingFontStyle.Bold, GraphicsUnit.Point);
+        refreshPlotButton.Size = new Size(118, 36);
+        resetViewButton.Size = new Size(118, 36);
+        exportPlotButton.Size = new Size(118, 36);
+        refreshPlotButton.Margin = new Padding(0, 0, 10, 10);
+        resetViewButton.Margin = new Padding(0, 0, 10, 10);
+        exportPlotButton.Margin = new Padding(0, 0, 0, 10);
+        rightPanel.Padding = new Padding(18);
+        _plotSummaryLabel.MaximumSize = new Size(Math.Max(320, rightPanel.ClientSize.Width - 36), 0);
 
-        plotTitleLabel.Location = new Point(18, 18);
-        plotTitleLabel.Font = new System.Drawing.Font("Microsoft YaHei UI", 18F, DrawingFontStyle.Bold, GraphicsUnit.Point);
-        plotHintLabel.Location = new Point(18, 46);
-        plotToolbar.Location = new Point(18, 60);
-        plotToolbar.AutoSize = false;
-        plotToolbar.WrapContents = false;
-        plotToolbar.Padding = new Padding(0);
-        plotToolbar.Size = new Size(360, 40);
-        refreshPlotButton.Size = new Size(108, 34);
-        resetViewButton.Size = new Size(108, 34);
-        exportPlotButton.Size = new Size(108, 34);
-        refreshPlotButton.Margin = new Padding(0, 0, 10, 0);
-        resetViewButton.Margin = new Padding(0, 0, 10, 0);
-        exportPlotButton.Margin = new Padding(0);
-
-        int summaryWidth = Math.Min(460, Math.Max(300, rightPanel.ClientSize.Width - 420));
-        _plotSummaryLabel.Location = new Point(rightPanel.ClientSize.Width - summaryWidth - 18, 66);
-        _plotSummaryLabel.Size = new Size(summaryWidth, 24);
-
-        int plotTop = 112;
-        int plotWidth = rightPanel.ClientSize.Width - 36;
-        int plotHeight = Math.Max(420, rightPanel.ClientSize.Height - plotTop - 18);
-        plotHostPanel.Location = new Point(18, plotTop);
-        plotHostPanel.Size = new Size(plotWidth, plotHeight);
+        filtersPanel.Padding = new Padding(18, 18, 18, 10);
+        datePanel.Padding = new Padding(18, 18, 18, 10);
+        timeColumnLabel.Margin = new Padding(0, 0, 0, 6);
+        chartTypeLabel.Margin = new Padding(0, 0, 0, 6);
+        sampleLimitLabel.Margin = new Padding(0, 0, 0, 6);
+        displayModeLabel.Margin = new Padding(0, 0, 0, 6);
+        intervalLabel.Margin = new Padding(0, 0, 0, 6);
+        timeColumnComboBox.Margin = new Padding(0, 0, 0, 14);
+        chartTypeComboBox.Margin = new Padding(0, 0, 0, 14);
+        sampleLimitComboBox.Margin = new Padding(0, 0, 0, 14);
+        displayModeComboBox.Margin = new Padding(0, 0, 0, 14);
+        intervalComboBox.Margin = new Padding(0);
+        startLabel.Margin = new Padding(0, 0, 0, 6);
+        endLabel.Margin = new Padding(0, 10, 0, 6);
+        startPicker.Margin = new Padding(0);
+        endPicker.Margin = new Padding(0);
 
         int gridHeight = Math.Max(340, leftScrollPanel.ClientSize.Height - columnGrid.Top - 20);
         columnGrid.Height = gridHeight;
         columnGrid.Width = leftLayout.Width - 6;
         SelectColumn.Width = 56;
-        AxisColumn.Width = 74;
-        SeriesTypeColumn.Width = 118;
-        NameColumn.Width = Math.Max(140, columnGrid.Width - SelectColumn.Width - AxisColumn.Width - SeriesTypeColumn.Width - 28);
+        AxisColumn.Width = 86;
+        SeriesTypeColumn.Width = 132;
+        NameColumn.Width = Math.Max(140, columnGrid.Width - SelectColumn.Width - AxisColumn.Width - SeriesTypeColumn.Width - 32);
     }
 
     private void ConfigurePlot()

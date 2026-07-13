@@ -6,10 +6,48 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>assets\app_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ScottPlot.WinForms" Version="5.1.59" />
+    <Reference Include="ScottPlot.WinForms">
+      <HintPath>..\CsvDesktopAnalyzer.Flat\local-libs\ScottPlot.WinForms.dll</HintPath>
+    </Reference>
+    <Reference Include="ScottPlot">
+      <HintPath>..\CsvDesktopAnalyzer.Flat\local-libs\ScottPlot.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp">
+      <HintPath>..\CsvDesktopAnalyzer.Flat\local-libs\SkiaSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp.HarfBuzz">
+      <HintPath>..\CsvDesktopAnalyzer.Flat\local-libs\SkiaSharp.HarfBuzz.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp.Views.WindowsForms">
+      <HintPath>..\CsvDesktopAnalyzer.Flat\local-libs\SkiaSharp.Views.WindowsForms.dll</HintPath>
+    </Reference>
+    <Reference Include="SkiaSharp.Views.Desktop.Common">
+      <HintPath>..\CsvDesktopAnalyzer.Flat\local-libs\SkiaSharp.Views.Desktop.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="HarfBuzzSharp">
+      <HintPath>..\CsvDesktopAnalyzer.Flat\local-libs\HarfBuzzSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK">
+      <HintPath>..\CsvDesktopAnalyzer.Flat\local-libs\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.GLControl">
+      <HintPath>..\CsvDesktopAnalyzer.Flat\local-libs\OpenTK.GLControl.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\CsvDesktopAnalyzer.Flat\local-libs\libSkiaSharp.dll">
+      <Link>libSkiaSharp.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="bin\Debug\net9.0-windows\runtimes\win-x64\native\libHarfBuzzSharp.dll">
+      <Link>libHarfBuzzSharp.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
