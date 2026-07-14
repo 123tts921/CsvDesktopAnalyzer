@@ -47,7 +47,8 @@ public partial class Form1 : Form
     private readonly System.Windows.Forms.Label _plotSummaryLabel = new();
     private readonly TableLayoutPanel _headerLayout = new();
     private readonly TableLayoutPanel _fileBarLayout = new();
-    private readonly FlowLayoutPanel _fileActionPanel = new();
+    private readonly TableLayoutPanel _fileActionLayout = new();
+    private readonly Panel _fileBarPanel = new();
     private readonly TableLayoutPanel _rightLayout = new();
 
     public Form1()
@@ -72,6 +73,7 @@ public partial class Form1 : Form
         {
         }
         Resize += (_, _) => ApplyFlatLayout();
+        Shown += (_, _) => ApplyFlatLayout();
 
         headerTitleLabel.Text = "CSV 桌面分析器";
         headerHintLabel.Text = "多列对比、多轴映射、时间范围筛选";
@@ -187,60 +189,45 @@ public partial class Form1 : Form
         headerHintLabel.Dock = DockStyle.Fill;
         headerHintLabel.Margin = Padding.Empty;
 
-        _fileBarLayout.SuspendLayout();
-        _fileBarLayout.Controls.Clear();
-        _fileBarLayout.ColumnStyles.Clear();
-        _fileBarLayout.RowStyles.Clear();
-        _fileActionPanel.SuspendLayout();
-        _fileActionPanel.Controls.Clear();
-        _fileActionPanel.FlowDirection = FlowDirection.LeftToRight;
-        _fileActionPanel.WrapContents = false;
-        _fileActionPanel.AutoSize = true;
-        _fileActionPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        _fileActionPanel.Dock = DockStyle.Right;
-        _fileActionPanel.Margin = Padding.Empty;
-        _fileActionPanel.Padding = Padding.Empty;
-        _fileActionPanel.Controls.Add(browseButton);
-        _fileActionPanel.Controls.Add(loadButton);
-        _fileActionPanel.ResumeLayout(false);
+        _fileBarPanel.SuspendLayout();
+        _fileBarPanel.Controls.Clear();
+        _fileBarPanel.AutoSize = false;
+        _fileBarPanel.Dock = DockStyle.Fill;
+        _fileBarPanel.Margin = new Padding(0, 8, 0, 0);
+        _fileBarPanel.Padding = Padding.Empty;
+        _fileBarPanel.Height = 38;
 
-        _fileBarLayout.ColumnCount = 3;
-        _fileBarLayout.RowCount = 2;
-        _fileBarLayout.AutoSize = false;
-        _fileBarLayout.Dock = DockStyle.Fill;
-        _fileBarLayout.Margin = new Padding(0, 8, 0, 0);
-        _fileBarLayout.Padding = Padding.Empty;
-        _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
-        _fileBarLayout.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        _fileBarLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 36F));
-        _fileBarLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 0F));
-        _fileBarLayout.Height = 36;
-
-        fileLabel.AutoSize = true;
-        fileLabel.MinimumSize = new Size(78, 0);
-        fileLabel.Height = 36;
-        fileLabel.Margin = new Padding(0, 0, 12, 0);
-        fileLabel.Anchor = AnchorStyles.Left;
+        fileLabel.AutoSize = false;
+        fileLabel.Width = 90;
+        fileLabel.MinimumSize = new Size(90, 34);
+        fileLabel.Height = 34;
+        fileLabel.Margin = Padding.Empty;
+        fileLabel.Dock = DockStyle.None;
         fileLabel.TextAlign = ContentAlignment.MiddleLeft;
-        filePathTextBox.Dock = DockStyle.Fill;
+        filePathTextBox.Dock = DockStyle.None;
         filePathTextBox.Multiline = false;
         filePathTextBox.BorderStyle = BorderStyle.FixedSingle;
-        filePathTextBox.Margin = new Padding(0, 0, 12, 0);
-        filePathTextBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-        browseButton.Anchor = AnchorStyles.None;
-        browseButton.Margin = new Padding(0, 0, 10, 0);
-        loadButton.Anchor = AnchorStyles.None;
+        filePathTextBox.Margin = Padding.Empty;
+        filePathTextBox.Anchor = AnchorStyles.None;
+        browseButton.Dock = DockStyle.None;
+        browseButton.Margin = Padding.Empty;
+        browseButton.Padding = new Padding(0);
+        browseButton.AutoEllipsis = false;
+        browseButton.TextAlign = ContentAlignment.MiddleCenter;
+        loadButton.Dock = DockStyle.None;
         loadButton.Margin = Padding.Empty;
+        loadButton.Padding = new Padding(0);
+        loadButton.AutoEllipsis = false;
+        loadButton.TextAlign = ContentAlignment.MiddleCenter;
 
-        _fileBarLayout.Controls.Add(fileLabel, 0, 0);
-        _fileBarLayout.Controls.Add(filePathTextBox, 1, 0);
-        _fileBarLayout.Controls.Add(_fileActionPanel, 2, 0);
-        _fileBarLayout.ResumeLayout(false);
-        _fileBarLayout.PerformLayout();
+        _fileBarPanel.Controls.Add(fileLabel);
+        _fileBarPanel.Controls.Add(filePathTextBox);
+        _fileBarPanel.Controls.Add(browseButton);
+        _fileBarPanel.Controls.Add(loadButton);
+        _fileBarPanel.ResumeLayout(false);
 
         _headerLayout.Controls.Add(headerTitleLabel, 0, 0);
-        _headerLayout.Controls.Add(_fileBarLayout, 0, 1);
+        _headerLayout.Controls.Add(_fileBarPanel, 0, 1);
         _headerLayout.ResumeLayout(false);
         _headerLayout.PerformLayout();
 
@@ -472,13 +459,7 @@ public partial class Form1 : Form
     {
         rootLayout.RowStyles[0].Height = 132F;
         headerPanel.Padding = new Padding(24, 14, 24, 14);
-        fileLabel.Height = 36;
-        filePathTextBox.MinimumSize = new Size(160, 36);
-        filePathTextBox.Height = 36;
-        browseButton.Size = new Size(128, 36);
-        browseButton.MinimumSize = new Size(128, 36);
-        loadButton.Size = new Size(96, 36);
-        loadButton.MinimumSize = new Size(96, 36);
+        UpdateFileBarMetrics();
         UpdateFileBarResponsiveLayout();
 
         leftScrollPanel.Padding = new Padding(16);
@@ -529,30 +510,65 @@ public partial class Form1 : Form
         NameColumn.Width = Math.Max(140, columnGrid.Width - SelectColumn.Width - AxisColumn.Width - SeriesTypeColumn.Width - 32);
     }
 
+    private void UpdateFileBarMetrics()
+    {
+        Size labelTextSize = TextRenderer.MeasureText(fileLabel.Text, fileLabel.Font);
+        Size browseTextSize = TextRenderer.MeasureText(browseButton.Text, browseButton.Font);
+        Size loadTextSize = TextRenderer.MeasureText(loadButton.Text, loadButton.Font);
+
+        int measuredHeight = Math.Max(labelTextSize.Height, Math.Max(browseTextSize.Height, loadTextSize.Height)) + 10;
+        int controlHeight = Math.Min(38, Math.Max(34, measuredHeight));
+        int labelWidth = Math.Max(88, labelTextSize.Width + 16);
+        int browseWidth = Math.Max(144, browseTextSize.Width + 56);
+        int loadWidth = Math.Max(96, loadTextSize.Width + 48);
+
+        fileLabel.Width = labelWidth;
+        fileLabel.MinimumSize = new Size(labelWidth, controlHeight);
+        fileLabel.Height = controlHeight;
+
+        filePathTextBox.MinimumSize = new Size(200, controlHeight);
+        filePathTextBox.Height = controlHeight;
+
+        browseButton.Size = new Size(browseWidth, controlHeight);
+        browseButton.MinimumSize = new Size(browseWidth, controlHeight);
+        loadButton.Size = new Size(loadWidth, controlHeight);
+        loadButton.MinimumSize = new Size(loadWidth, controlHeight);
+        _fileBarPanel.Height = controlHeight;
+    }
+
     private void UpdateFileBarResponsiveLayout()
     {
         int availableWidth = Math.Max(0, headerPanel.ClientSize.Width - headerPanel.Padding.Horizontal);
-        bool compactLayout = availableWidth < 900;
+        int controlHeight = filePathTextBox.MinimumSize.Height;
+        int labelWidth = fileLabel.MinimumSize.Width;
+        int browseWidth = browseButton.MinimumSize.Width;
+        int loadWidth = loadButton.MinimumSize.Width;
+        int labelGap = 14;
+        int fieldGap = 18;
+        int buttonGap = 16;
+        int rightGuard = 24;
+        int totalFixedWidth = labelWidth + labelGap + fieldGap + browseWidth + buttonGap + loadWidth + rightGuard;
+        int minPathWidth = 280;
+        int maxPathWidth = 620;
+        int preferredPathWidth = Math.Min(maxPathWidth, Math.Max(minPathWidth, (int)Math.Round(availableWidth * 0.34)));
+        int pathWidth = Math.Max(minPathWidth, Math.Min(preferredPathWidth, availableWidth - totalFixedWidth));
 
-        _fileBarLayout.SuspendLayout();
-        _fileActionPanel.SuspendLayout();
+        if (availableWidth - totalFixedWidth < minPathWidth)
+            pathWidth = Math.Max(180, availableWidth - totalFixedWidth);
 
-        _fileBarLayout.RowCount = compactLayout ? 2 : 1;
-        _fileBarLayout.RowStyles[0].Height = 36F;
-        _fileBarLayout.RowStyles[1].Height = compactLayout ? 36F : 0F;
-        _fileBarLayout.Height = compactLayout ? 78 : 36;
+        int x = 0;
+        int y = 0;
 
-        _fileBarLayout.Controls.Remove(_fileActionPanel);
-        _fileBarLayout.Controls.Add(_fileActionPanel, compactLayout ? 1 : 2, compactLayout ? 1 : 0);
-        _fileBarLayout.SetColumnSpan(_fileActionPanel, compactLayout ? 2 : 1);
-
-        _fileActionPanel.FlowDirection = compactLayout ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
-        _fileActionPanel.Dock = compactLayout ? DockStyle.Fill : DockStyle.Right;
-        browseButton.Margin = compactLayout ? new Padding(10, 0, 0, 0) : new Padding(0, 0, 10, 0);
-        loadButton.Margin = Padding.Empty;
-
-        _fileActionPanel.ResumeLayout(true);
-        _fileBarLayout.ResumeLayout(true);
+        _fileBarPanel.SuspendLayout();
+        _fileBarPanel.Height = controlHeight;
+        fileLabel.Bounds = new Rectangle(x, y, labelWidth, controlHeight);
+        x += labelWidth + labelGap;
+        filePathTextBox.Bounds = new Rectangle(x, y + 1, pathWidth, Math.Max(22, controlHeight - 2));
+        x += pathWidth + fieldGap;
+        browseButton.Bounds = new Rectangle(x, y, browseWidth, controlHeight);
+        x += browseWidth + buttonGap;
+        loadButton.Bounds = new Rectangle(x, y, loadWidth, controlHeight);
+        _fileBarPanel.ResumeLayout(true);
     }
 
     private void ConfigurePlot()
@@ -1241,5 +1257,38 @@ public partial class Form1 : Form
         DateTime MaxTime)
     {
         public int RowCount => Timestamps.Length;
+    }
+}
+
+internal sealed class SingleLineButton : Button
+{
+    public SingleLineButton()
+    {
+        SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
+    }
+
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        Rectangle bounds = ClientRectangle;
+        DrawingColor backColor = Enabled ? BackColor : SystemColors.Control;
+        DrawingColor borderColor = Enabled ? FlatAppearance.BorderColor : SystemColors.ControlDark;
+        DrawingColor textColor = Enabled ? ForeColor : SystemColors.GrayText;
+
+        using SolidBrush background = new(backColor);
+        e.Graphics.FillRectangle(background, bounds);
+        ControlPaint.DrawBorder(e.Graphics, bounds, borderColor, ButtonBorderStyle.Solid);
+
+        Rectangle textBounds = Rectangle.Inflate(bounds, -6, 0);
+        TextRenderer.DrawText(
+            e.Graphics,
+            Text,
+            Font,
+            textBounds,
+            textColor,
+            TextFormatFlags.SingleLine |
+            TextFormatFlags.HorizontalCenter |
+            TextFormatFlags.VerticalCenter |
+            TextFormatFlags.EndEllipsis |
+            TextFormatFlags.NoPrefix);
     }
 }

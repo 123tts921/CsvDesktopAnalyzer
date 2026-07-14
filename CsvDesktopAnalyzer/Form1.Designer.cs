@@ -22,8 +22,8 @@ partial class Form1
         headerPanel = new Panel();
         headerTitleLabel = new Label();
         headerHintLabel = new Label();
-        loadButton = new Button();
-        browseButton = new Button();
+        loadButton = new SingleLineButton();
+        browseButton = new SingleLineButton();
         filePathTextBox = new TextBox();
         fileLabel = new Label();
         splitter = new SplitContainer();
